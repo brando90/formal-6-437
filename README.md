@@ -1,4 +1,4 @@
-# formal-6-437
+# Formal 6.437: A Lean4 Formalization of Inference and Information Theory
 
 Formalizing MIT's **6.437 Inference and Information** in Lean4.
 
@@ -32,6 +32,19 @@ This project aims to formalize the mathematical foundations of statistical infer
 Course materials obtained from publicly available resources:
 - [Reddit: MIT 6.437 Inference and Information](https://www.reddit.com/r/mit/comments/f7megq/mit_6437_inference_and_information/)
 - [Dropbox: 6_437_S2015.zip](https://www.dropbox.com/scl/fi/vwzygvkdy3itoijheor0c/6_437_S2015.zip?rlkey=tm1zbljmizqxc1bfvukexmu42&e=1&dl=0)
+
+## Citation
+
+If you use this work, please cite:
+
+```bibtex
+@software{miranda2026formal6437,
+  author       = {Miranda, Brando},
+  title        = {Formal 6.437: A Lean4 Formalization of Inference and Information Theory},
+  year         = {2026},
+  url          = {https://github.com/brando90/formal-6-437}
+}
+```
 
 ## License
 
