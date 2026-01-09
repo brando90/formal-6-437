@@ -1,3 +1,27 @@
+# ===================
+# Lean 4 / Lake
+# ===================
+.lake/
+lake-packages/
+build/
+*.olean
+*.ilean
+*.trace
+*.hash
+.elan/
+
+# ===================
+# macOS
+# ===================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ===================
+# Python
+# ===================
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

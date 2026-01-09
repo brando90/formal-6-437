@@ -12,4 +12,3 @@ example : α → α := fun x => x
 
 -- Using Aesop (included in Mathlib)
 example : α → α := by aesop
-
