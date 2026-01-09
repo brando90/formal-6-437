@@ -1,109 +1,47 @@
 # How to Use Aristotle (Harmonic)
 
-Aristotle is an AI-powered theorem prover for Lean 4 by [Harmonic](https://harmonic.fun).
+AI theorem prover for Lean 4 by [Harmonic](https://harmonic.fun).
 
 ---
 
-## Installation
+## Setup
 
-### 1. Install UV (recommended)
+### 1. Set API Key
 
-```bash
-# macOS/Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
+Get your key at: https://aristotle.harmonic.fun
 
-# or with Homebrew
-brew install uv
-```
-
-### 2. Set Your API Key
-
-Get your free API key at: https://aristotle.harmonic.fun
-
-**Mac** — add to `~/.zshrc`:
+Add to `~/.zshrc` (Mac) or `~/.bashrc` (Linux):
 ```bash
 export ARISTOTLE_API_KEY='arstl_{YOUR_API_KEY}'
 ```
 
-**Linux** — add to `~/.bashrc`:
-```bash
-export ARISTOTLE_API_KEY='arstl_{YOUR_API_KEY}'
-```
+### 2. Run Aristotle
 
-Then reload:
-```bash
-source ~/.zshrc  # or ~/.bashrc
-```
-
-### 3. Start Aristotle
-
-> ⚠️ **Note**: The official docs say `uvx aristotlelib@latest aristotle` but this is incorrect.
-
-**Use this command instead:**
 ```bash
 uvx --from aristotlelib@latest aristotle
 ```
 
----
-
-## Available Modes
-
-```
-╭─ Available Modes ─────────────────────────────────────╮
-│                                                       │
-│  [1] Fill sorries in a lean file (.lean)              │
-│  [2] Prove and formalize from an existing file (.txt) │
-│  [3] Direct Aristotle in English (.lean optional)     │
-│  [4] View history                                     │
-│                                                       │
-╰───────────────────────────────────────────────────────╯
-```
-
-### Mode 1: Fill Sorries
-Automatically proves `sorry` placeholders in your Lean files.
-
-### Mode 2: Prove and Formalize
-Converts informal math (from `.txt` files) into formal Lean proofs.
-
-### Mode 3: Direct Aristotle
-Chat with Aristotle in natural language to generate Lean code.
-
-### Mode 4: View History
-Browse your previous Aristotle sessions.
+> ⚠️ The docs say `uvx aristotlelib@latest aristotle` — this is wrong. Use `--from`.
 
 ---
 
-## Version Compatibility
+## Modes
 
-Aristotle runs on fixed versions:
-
-| Component | Version |
-|-----------|---------|
-| Lean | `leanprover/lean4:v4.24.0` |
-| Mathlib | `v4.24.0` (Oct 14, 2025) |
-
-If your project uses different versions, you may experience degraded performance.
+| Mode | Description |
+|------|-------------|
+| [1] Fill sorries | Auto-prove `sorry` in `.lean` files |
+| [2] Formalize | Convert `.txt` math to Lean |
+| [3] Direct | Chat in English |
+| [4] History | View past sessions |
 
 ---
 
-## Quick Commands
+## Version Info
 
-```bash
-# Check if API key is set
-echo $ARISTOTLE_API_KEY
-
-# Start Aristotle
-uvx --from aristotlelib@latest aristotle
-
-# Alternative: install with pip
-pip install aristotlelib
-aristotle
-```
+Aristotle uses **Lean 4.24.0** / **Mathlib v4.24.0**.
 
 ---
 
 ## References
 
-- [Aristotle Installation Docs](https://aristotle.harmonic.fun/dashboard/docs/installation)
-- [Harmonic Website](https://harmonic.fun)
-
+- [Official Docs](https://aristotle.harmonic.fun/dashboard/docs/installation)
