@@ -29,4 +29,4 @@ This project aims to formalize the mathematical foundations of statistical infer
 
 ## License
 
-MIT
+Apache 2.0
