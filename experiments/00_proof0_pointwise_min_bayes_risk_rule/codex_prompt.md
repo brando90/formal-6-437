@@ -1,4 +1,12 @@
-### **The Prompt for Codex / Cursor Agent**
+**Key Improvements:**
+
+1. **Added `deriving DecidableEq`:** This is crucial. Without it, the `if/else` logic in Lean will fail because the kernel won't know how to compare `H0` vs `H1`.
+2. **Explicit Math for Risk:** I added the exact formula for `pointwise_risk` to ensure the agent doesn't hallucinate a different cost structure.
+3. **The "Agent Loop" (Constraint 4):** This is the most important change. It replaces "ensure it compiles" with specific instructions to run the shell command and self-correct based on the output.
+
+---
+
+### **The Improved Prompt for Codex / Cursor Agent**
 
 **System Role:**
 You are an expert Formal Verification Engineer specializing in **Lean 4** and **Mathlib4**. You are working in a specific existing project with the following structure:
@@ -11,7 +19,7 @@ You are an expert Formal Verification Engineer specializing in **Lean 4** and **
 Create a new Lean 4 file named **`PointwiseRisk.lean`** inside the **Target Directory** (`Lecture01`). This file must formally prove the **Pointwise Minimum Bayes Risk** theorem.
 
 **Constraint 1: The Documentation (Strict)**
-You MUST include the following specific derivation as the module docstring at the very top of the file. Use this exact text, which transcribes the user's handwritten notes:
+You MUST include the following specific derivation as the module docstring at the very top of the file. Use this exact text:
 
 > **Docstring Content:**
 > /--
@@ -36,20 +44,38 @@ You MUST include the following specific derivation as the module docstring at th
 
 1. **Imports:** Use `import Mathlib.Data.Real.Basic`.
 2. **Namespace:** Wrap the code in `namespace HypothesisTesting`.
-3. **Types:** Define `inductive Hypothesis | H0 | H1`.
-4. **Variables:** Define priors `P0, P1`, likelihoods `p0, p1`, and costs `C00, C01, C10, C11` as Reals.
+3. **Types:** Define `inductive Hypothesis | H0 | H1 deriving DecidableEq`. (Note: `deriving DecidableEq` is REQUIRED for the `if` statement to work).
+4. **Variables:**
+* `variable {Y : Type}`
+* `variable (P0 P1 : ℝ)`
+* `variable (p0 p1 : Y → ℝ)`
+* `variable (C00 C01 C10 C11 : ℝ)`
+
+
 5. **Risk Definition:** Define `pointwise_risk (y : Y) (d : Hypothesis) : ℝ`.
-6. **Decision Rule:** Define `optimal_decision_rule` using standard `if/else` logic that implements the `argmin` described in step 4 of the docstring.
+* Logic: `match d with | H0 => P0*C00*p0(y) + P1*C01*p1(y) | H1 => P0*C10*p0(y) + P1*C11*p1(y)`
+
+
+6. **Decision Rule:** Define `optimal_decision_rule` using standard `if/else` logic.
+* Logic: `if risk(H1) < risk(H0) then H1 else H0`
+
+
 7. **Theorem:** Name the theorem **`pointwise_min_bayes_risk_optimality`**.
-* *Statement:* For all `y` and all hypotheses `h`, `pointwise_risk(optimal_rule(y)) ≤ pointwise_risk(h)`.
+* *Statement:* `∀ (y : Y) (h : Hypothesis), pointwise_risk ... (optimal_rule ... y) ≤ pointwise_risk ... h`
 
 
 
-**Constraint 3: Verification**
+**Constraint 3: The Proof Strategy**
 
 * **No Sorries:** The proof must be complete.
-* **Tactic Strategy:** Use `dsimp` to unfold definitions, `split_ifs` to handle the decision logic, and basic inequality lemmas.
-* **Kernel Check:** Before finishing, ensure the code compiles with the Lean 4 kernel available in the project context.
+* **Tactics:** Use `dsimp` to unfold definitions. Use `split_ifs` to handle the conditional logic. Use `le_of_lt` and `le_refl` for the inequalities.
+
+**Constraint 4: Verification (MANDATORY)**
+You must verify the code before outputting it:
+
+1. **Run:** Execute `lean PointwiseRisk.lean` in the terminal inside the Target Directory.
+2. **Loop:** If the command returns **any** errors (exit code != 0), read the error message, fix the code, and run it again.
+3. **Finalize:** Only output the code once it compiles with zero errors.
 
 **Output:**
-Provide **only** the content of the `PointwiseRisk.lean` file.
+Provide **only** the final, compiled content of the `PointwiseRisk.lean` file.
