@@ -1,0 +1,21 @@
+- refs:
+    - https://chatgpt.com/g/g-p-68e72f809ba0819193e20c6aafc07fb4-6-437/c/6942e200-1e1c-8327-9e29-944344f1b7e8 
+    - https://en.wikipedia.org/wiki/Statistical_inference 
+    - https://en.wikipedia.org/wiki/Decision_theory 
+    - https://gemini.google.com/gem/414f88ab5ef8/1ce4ed48a71f9bfe
+
+# TODOs
+- define DT
+- define GDT
+- define stat inference
+- relate all 3
+- relation to proper
+- for proper we need gibbs inequ
+- D_kl
+    - https://gemini.google.com/gem/414f88ab5ef8/33347f055a930433
+    - blog intuition vs CE too
+    - what exactly does it mean physically, sending info in channels...literally? 
+- for gibbs we likely need D_KL >= 0
+    - https://gemini.google.com/gem/414f88ab5ef8/1682e11155c597c4 
+- so let's do D_KL first when doing the actual proof
+- think of what blog to do from this
