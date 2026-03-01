@@ -20,7 +20,7 @@ This is different from the `--init` CLI flag, which runs initialization *hooks* 
 
 ---
 
-# Claude in yolo mode
+# Claude in yolo mode `calude --dangerously-skip-permissions`
 
 The `--dangerously-skip-permissions` flag **skips all permission prompts** when running Claude Code. This means Claude can execute commands, edit files, and perform actions without asking for your approval each time.
 

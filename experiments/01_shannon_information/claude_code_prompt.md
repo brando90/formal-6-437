@@ -16,6 +16,8 @@ Ideally I'd like to push this to math or cslib eventually.
 
 PS: if mathlib wasn't "installed" then install it fully. And there should be other lean projects in this computer, so I wonder if there is a way to re-use them or what the deal with that would be? Maybe let's add that to the readme.md of this folder so it's clear how to use/install mathlib. 
 
+Feel free to git add commit push for this repo, since my team will help me review this as a PR later. 
+
 ------
 
 ## GPT5 thinking heavy
