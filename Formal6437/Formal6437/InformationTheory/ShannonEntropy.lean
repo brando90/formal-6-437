@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Formal6437 Contributors
 -/
 import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
-import Mathlib.Topology.Algebra.InfiniteSum.Basic
 
 /-!
 # Shannon Information Content and Entropy
@@ -65,9 +64,10 @@ noncomputable def infoContent (p : ℝ) : ℝ := -Real.log p
 theorem infoContent_one : infoContent 1 = 0 := by
   simp [infoContent]
 
-/-- An impossible event (`p = 0`) has information content zero by convention
-(since `Real.log 0 = 0` in Mathlib). This is consistent with the `0 log 0 = 0`
-convention used throughout information theory. -/
+/-- By Mathlib's convention `Real.log 0 = 0`, we get `infoContent 0 = 0`.
+Mathematically, `h(0) = -log(0) = +∞`, but since we work in `ℝ` (not `ℝ∞`),
+this is a junk value. It is harmless for entropy because zero-probability events
+contribute `0 * h(0) = 0` to the sum, matching the standard `0 log 0 = 0` convention. -/
 @[simp]
 theorem infoContent_zero : infoContent 0 = 0 := by
   simp [infoContent]
