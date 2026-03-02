@@ -1,3 +1,4 @@
 import Formal6437.Basic
 import Formal6437.Lecture01.Basic
 import Formal6437.InformationTheory.ShannonEntropy
+import Formal6437.InformationTheory.KLDivergence
