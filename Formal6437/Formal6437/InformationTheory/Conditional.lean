@@ -34,7 +34,7 @@ the chain rule trivially true by definition.
 * `ConditionalEntropy.mutualInfo_eq_klDiv` — `I(X;Y) = D_KL(p ‖ p_X ⊗ p_Y)`
 * `ConditionalEntropy.mutualInfo_nonneg` — `I(X;Y) ≥ 0` (via Gibbs' inequality)
 * `ConditionalEntropy.condEntropy_le_entropy` — `H(Y|X) ≤ H(Y)`
-* `ConditionalEntropy.condEntropy_nonneg` — `H(Y|X) ≥ 0` (sorry, needs Jensen)
+* `ConditionalEntropy.condEntropy_nonneg` — `H(Y|X) ≥ 0` (via superadditivity of `negMulLog`)
 
 ## References
 
@@ -244,17 +244,44 @@ theorem condEntropy_le_entropy [Fintype α] [Fintype β] {p : α × β → ℝ}
   rw [mutualInfo_alt] at h
   linarith
 
-/-- Conditional entropy is nonneg for valid PMFs. Requires concavity of entropy
-(superadditivity of `negMulLog`), which needs Jensen's inequality.
+/-- Superadditivity of `negMulLog`: `negMulLog(∑ f) ≤ ∑ negMulLog(f)` for nonneg `f`.
+The key step: each `f(c) ≤ ∑ f`, so `log(f(c)) ≤ log(∑ f)`, hence
+`f(c) * log(f(c)) ≤ f(c) * log(∑ f)`. Summing and negating gives the result. -/
+private lemma negMulLog_sum_le {γ : Type*} [Fintype γ] {f : γ → ℝ} (hf : ∀ (c : γ), 0 ≤ f c) :
+    negMulLog (∑ c, f c) ≤ ∑ c, negMulLog (f c) := by
+  -- Step 1: termwise bound f(c) * log(f(c)) ≤ f(c) * log(∑ f)
+  have key : ∀ (c : γ), f c * Real.log (f c) ≤ f c * Real.log (∑ c', f c') := by
+    intro c
+    by_cases hc : f c = 0
+    · simp [hc]
+    · exact mul_le_mul_of_nonneg_left
+        (Real.log_le_log (lt_of_le_of_ne (hf c) (Ne.symm hc))
+          (Finset.single_le_sum (fun c' _ => hf c') (Finset.mem_univ c)))
+        (hf c)
+  -- Step 2: sum and factor to get ∑ f*log(f) ≤ (∑ f) * log(∑ f)
+  have sum_le : ∑ c, f c * Real.log (f c) ≤ (∑ c, f c) * Real.log (∑ c, f c) :=
+    calc ∑ c, f c * Real.log (f c)
+        ≤ ∑ c, f c * Real.log (∑ c', f c') := Finset.sum_le_sum (fun c _ => key c)
+      _ = (∑ c, f c) * Real.log (∑ c', f c') := by rw [← Finset.sum_mul]
+  -- Step 3: convert to negMulLog form (negate both sides)
+  unfold negMulLog
+  simp only [neg_mul]
+  rw [Finset.sum_neg_distrib]
+  linarith
 
-**Strategy**: Show `H(X,Y) ≥ H(X)` by expressing `H(X,Y) - H(X)` as
-`∑_a ∑_b negMulLog(p(a,b)) - ∑_a negMulLog(∑_b p(a,b))` and applying
-concavity of `negMulLog` (Jensen's inequality) to each fiber. -/
+/-- **Conditional entropy is nonneg**: `H(Y|X) ≥ 0`, i.e., `H(X,Y) ≥ H(X)`.
+
+Proof: for each fiber `a`, `negMulLog(∑_b p(a,b)) ≤ ∑_b negMulLog(p(a,b))` by
+log monotonicity (each `p(a,b) ≤ ∑_b' p(a,b')` implies `log p(a,b) ≤ log(∑ p)`).
+Summing over fibers gives `H(X) ≤ H(X,Y)`. -/
 theorem condEntropy_nonneg [Fintype α] [Fintype β] {p : α × β → ℝ}
-    (hp_nonneg : ∀ (x : α × β), 0 ≤ p x)
-    (hp_le_one : ∀ (x : α × β), p x ≤ 1)
-    (hp_sum : ∑ x, p x = 1) :
+    (hp_nonneg : ∀ (x : α × β), 0 ≤ p x) :
     0 ≤ condEntropy p := by
-  sorry
+  unfold condEntropy entropy marginalFst
+  rw [Fintype.sum_prod_type, ← Finset.sum_sub_distrib]
+  apply Finset.sum_nonneg
+  intro a _
+  have h := negMulLog_sum_le (f := fun b => p (a, b)) (fun b => hp_nonneg (a, b))
+  linarith
 
 end ConditionalEntropy
