@@ -31,9 +31,9 @@ the chain rule trivially true by definition.
 
 * `ConditionalEntropy.chain_rule` — `H(X,Y) = H(X) + H(Y|X)` (definitional)
 * `ConditionalEntropy.mutualInfo_alt` — `I(X;Y) = H(Y) - H(Y|X)`
-* `ConditionalEntropy.mutualInfo_eq_klDiv` — `I(X;Y) = D_KL(p ‖ p_X ⊗ p_Y)` (sorry)
-* `ConditionalEntropy.mutualInfo_nonneg` — `I(X;Y) ≥ 0` (sorry, depends on above)
-* `ConditionalEntropy.condEntropy_le_entropy` — `H(Y|X) ≤ H(Y)` (depends on nonneg)
+* `ConditionalEntropy.mutualInfo_eq_klDiv` — `I(X;Y) = D_KL(p ‖ p_X ⊗ p_Y)`
+* `ConditionalEntropy.mutualInfo_nonneg` — `I(X;Y) ≥ 0` (via Gibbs' inequality)
+* `ConditionalEntropy.condEntropy_le_entropy` — `H(Y|X) ≤ H(Y)`
 * `ConditionalEntropy.condEntropy_nonneg` — `H(Y|X) ≥ 0` (sorry, needs Jensen)
 
 ## References
@@ -141,19 +141,83 @@ theorem mutualInfo_comm [Fintype α] [Fintype β] (p : α × β → ℝ) :
     mutualInfo p = entropy (marginalFst p) - (entropy p - entropy (marginalSnd p)) := by
   unfold mutualInfo; ring
 
+/-! ### Helper lemmas for the KL divergence identity -/
+
+/-- First marginal is positive when joint has a positive entry in that fiber. -/
+private theorem marginalFst_pos_of_pos [Fintype β] {p : α × β → ℝ}
+    (hp_nonneg : ∀ (x : α × β), 0 ≤ p x) {a : α} {b : β} (hab : 0 < p (a, b)) :
+    0 < marginalFst p a := by
+  unfold marginalFst
+  calc 0 < p (a, b) := hab
+    _ ≤ ∑ b', p (a, b') :=
+        Finset.single_le_sum (fun b' _ => hp_nonneg (a, b')) (Finset.mem_univ b)
+
+/-- Second marginal is positive when joint has a positive entry in that fiber. -/
+private theorem marginalSnd_pos_of_pos [Fintype α] {p : α × β → ℝ}
+    (hp_nonneg : ∀ (x : α × β), 0 ≤ p x) {a : α} {b : β} (hab : 0 < p (a, b)) :
+    0 < marginalSnd p b := by
+  unfold marginalSnd
+  calc 0 < p (a, b) := hab
+    _ ≤ ∑ a', p (a', b) :=
+        Finset.single_le_sum (fun a' _ => hp_nonneg (a', b)) (Finset.mem_univ a)
+
+/-- Collapsing sum: `∑ xy, p xy * log(margFst xy.1) = ∑ a, margFst a * log(margFst a)`. -/
+private lemma sum_joint_mul_log_margFst [Fintype α] [Fintype β] (p : α × β → ℝ) :
+    ∑ xy : α × β, p xy * Real.log (marginalFst p xy.1) =
+    ∑ a : α, marginalFst p a * Real.log (marginalFst p a) := by
+  simp_rw [Fintype.sum_prod_type, ← Finset.sum_mul]
+  rfl
+
+/-- Collapsing sum: `∑ xy, p xy * log(margSnd xy.2) = ∑ b, margSnd b * log(margSnd b)`. -/
+private lemma sum_joint_mul_log_margSnd [Fintype α] [Fintype β] (p : α × β → ℝ) :
+    ∑ xy : α × β, p xy * Real.log (marginalSnd p xy.2) =
+    ∑ b : β, marginalSnd p b * Real.log (marginalSnd p b) := by
+  simp_rw [Fintype.sum_prod_type_right, ← Finset.sum_mul]
+  rfl
+
+/-- The product distribution sums to 1 when the joint sums to 1. -/
+private lemma product_marginals_sum_eq_one [Fintype α] [Fintype β] {p : α × β → ℝ}
+    (hp_sum : ∑ x, p x = 1) :
+    ∑ xy : α × β, marginalFst p xy.1 * marginalSnd p xy.2 = 1 := by
+  simp_rw [Fintype.sum_prod_type, ← Finset.mul_sum]
+  rw [← Finset.sum_mul]
+  rw [marginalFst_sum_eq_one hp_sum, marginalSnd_sum_eq_one hp_sum, one_mul]
+
 /-- Mutual information expressed as KL divergence from the joint to the product of marginals:
-`I(X;Y) = D_KL(p ‖ p_X ⊗ p_Y)`.
-
-This is the key identity connecting mutual information to KL divergence. The proof requires
-manipulating nested sums with `Fintype.sum_prod_type` and factoring via `Finset.sum_mul`.
-
-**Strategy**: Both sides reduce to `H(X) + H(Y) - H(X,Y)` after expanding definitions
-and using:
-- `∑_{a,b} p(a,b) · log(p_X(a)) = ∑_a p_X(a) · log(p_X(a))` (factor out from inner sum)
-- `∑_{a,b} p(a,b) · log(p_Y(b)) = ∑_b p_Y(b) · log(p_Y(b))` (similarly) -/
-theorem mutualInfo_eq_klDiv [Fintype α] [Fintype β] (p : α × β → ℝ) :
+`I(X;Y) = D_KL(p ‖ p_X ⊗ p_Y)`. -/
+theorem mutualInfo_eq_klDiv [Fintype α] [Fintype β] {p : α × β → ℝ}
+    (hp_nonneg : ∀ (x : α × β), 0 ≤ p x) :
     mutualInfo p = klDiv p (fun xy => marginalFst p xy.1 * marginalSnd p xy.2) := by
-  sorry
+  -- Strategy: show both sides equal
+  -- ∑ xy, p xy * log(p xy) - ∑ xy, p xy * log(margFst xy.1) - ∑ xy, p xy * log(margSnd xy.2)
+  --
+  -- For mutualInfo: use entropy = ∑ negMulLog and collapse marginal sums
+  -- For klDiv: split log(a / (b*c)) = log a - log b - log c termwise
+  suffices hkl : klDiv p (fun xy => marginalFst p xy.1 * marginalSnd p xy.2) =
+      ∑ xy : α × β, p xy * Real.log (p xy) -
+      ∑ xy : α × β, p xy * Real.log (marginalFst p xy.1) -
+      ∑ xy : α × β, p xy * Real.log (marginalSnd p xy.2) by
+    rw [hkl]
+    -- Now show mutualInfo = the same expression
+    unfold mutualInfo entropy
+    simp only [negMulLog, neg_mul, Finset.sum_neg_distrib]
+    rw [← sum_joint_mul_log_margFst, ← sum_joint_mul_log_margSnd]
+    ring
+  -- Prove the klDiv expansion
+  unfold klDiv
+  rw [← Finset.sum_sub_distrib, ← Finset.sum_sub_distrib]
+  apply Finset.sum_congr rfl
+  intro xy _
+  by_cases hxy : p xy = 0
+  · simp [hxy]
+  · have hpxy : 0 < p xy := lt_of_le_of_ne (hp_nonneg xy) (Ne.symm hxy)
+    have hmf : 0 < marginalFst p xy.1 :=
+      marginalFst_pos_of_pos hp_nonneg (by rwa [Prod.eta])
+    have hms : 0 < marginalSnd p xy.2 :=
+      marginalSnd_pos_of_pos hp_nonneg (by rwa [Prod.eta])
+    rw [Real.log_div hxy (ne_of_gt (mul_pos hmf hms)),
+        Real.log_mul (ne_of_gt hmf) (ne_of_gt hms)]
+    ring
 
 /-- **Mutual information is nonneg**: `I(X;Y) ≥ 0`.
 Follows from `mutualInfo_eq_klDiv` + `klDiv_nonneg` (Gibbs' inequality). -/
@@ -162,11 +226,15 @@ theorem mutualInfo_nonneg [Fintype α] [Fintype β] {p : α × β → ℝ}
     (hp_sum : ∑ x, p x = 1)
     (hac : ∀ (x : α × β), p x ≠ 0 → marginalFst p x.1 * marginalSnd p x.2 ≠ 0) :
     0 ≤ mutualInfo p := by
-  sorry
+  rw [mutualInfo_eq_klDiv hp_nonneg]
+  exact klDiv_nonneg hp_nonneg
+    (fun xy => mul_nonneg (marginalFst_nonneg hp_nonneg xy.1) (marginalSnd_nonneg hp_nonneg xy.2))
+    hp_sum
+    (product_marginals_sum_eq_one hp_sum)
+    hac
 
 /-- **Conditioning reduces entropy**: `H(Y|X) ≤ H(Y)`.
-Equivalent to mutual information being nonneg: `I(X;Y) = H(Y) - H(Y|X) ≥ 0`.
-Note: depends on `mutualInfo_nonneg` which is currently sorry'd. -/
+Equivalent to mutual information being nonneg: `I(X;Y) = H(Y) - H(Y|X) ≥ 0`. -/
 theorem condEntropy_le_entropy [Fintype α] [Fintype β] {p : α × β → ℝ}
     (hp_nonneg : ∀ (x : α × β), 0 ≤ p x)
     (hp_sum : ∑ x, p x = 1)
